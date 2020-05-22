@@ -1,39 +1,56 @@
 package gwda_ext_opencv
 
-import "image"
+import (
+	"github.com/electricbubble/gwda"
+)
 
-func (sExt *SessionExt) Tap(pathname string, confidence float64) error {
-	return sExt.TapOffset(pathname, confidence, 0.5, 0.5)
+func (sExt *SessionExt) Tap(pathname string) error {
+	return sExt.TapOffset(pathname, 0.5, 0.5)
 }
 
-func (sExt *SessionExt) TapOffset(pathname string, confidence float64, xOffset, yOffset float64) (err error) {
-	var rect image.Rectangle
-	if rect, err = sExt.findImgRect(pathname, confidence); err != nil {
+func (sExt *SessionExt) TapOffset(pathname string, xOffset, yOffset float64) (err error) {
+	var x, y, width, height float64
+	if x, y, width, height, err = sExt.FindImgRectInUIKit(pathname); err != nil {
 		return err
 	}
-
-	x, y, width, height := sExt.mappingToRectInUIKit(rect)
 
 	return sExt.s.TapFloat(x+width*xOffset, y+height*yOffset)
 }
 
-func (sExt *SessionExt) DoubleTap(pathname string, confidence float64) (err error) {
-	return sExt.DoubleTapOffset(pathname, confidence, 0.5, 0.5)
+func (sExt *SessionExt) DoubleTap(pathname string) (err error) {
+	return sExt.DoubleTapOffset(pathname, 0.5, 0.5)
 }
 
-func (sExt *SessionExt) DoubleTapOffset(pathname string, confidence float64, xOffset, yOffset float64) (err error) {
-	var rect image.Rectangle
-	if rect, err = sExt.findImgRect(pathname, confidence); err != nil {
+func (sExt *SessionExt) DoubleTapOffset(pathname string, xOffset, yOffset float64) (err error) {
+	var x, y, width, height float64
+	if x, y, width, height, err = sExt.FindImgRectInUIKit(pathname); err != nil {
 		return err
 	}
-
-	x, y, width, height := sExt.mappingToRectInUIKit(rect)
 
 	return sExt.s.DoubleTapFloat(x+width*xOffset, y+height*yOffset)
 }
 
-// TODO ForceTouch
-// TODO TouchAndHoldFloat
+// TapWithNumber sends one or more taps
+func (sExt *SessionExt) TapWithNumber(pathname string, numberOfTaps int) (err error) {
+	return sExt.TapWithNumberOffset(pathname, numberOfTaps, 0.5, 0.5)
+}
+
+func (sExt *SessionExt) TapWithNumberOffset(pathname string, numberOfTaps int, xOffset, yOffset float64) (err error) {
+	if numberOfTaps <= 0 {
+		numberOfTaps = 1
+	}
+	var x, y, width, height float64
+	if x, y, width, height, err = sExt.FindImgRectInUIKit(pathname); err != nil {
+		return err
+	}
+
+	x = x + width*xOffset
+	y = y + height*yOffset
+
+	touchActions := gwda.NewWDATouchActions().Tap(gwda.NewWDATouchActionOptionTap().SetXYFloat(x, y).SetCount(numberOfTaps))
+	return sExt.PerformTouchActions(touchActions)
+}
+
 // TODO Drag
 // TODO Pinch
 // TODO TwoFingerTap
