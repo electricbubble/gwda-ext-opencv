@@ -116,3 +116,6 @@ func checkErr(err error, msg ...string) {
 }
 
 ```
+
+示例代码运行预览  
+![gwda-ext-opencv](https://raw.githubusercontent.com/electricbubble/ImageHosting/master/img/202005221801_gwda_ext_opencv.gif)
