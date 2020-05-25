@@ -119,3 +119,14 @@ func checkErr(err error, msg ...string) {
 
 示例代码运行预览  
 ![gwda-ext-opencv](https://raw.githubusercontent.com/electricbubble/ImageHosting/master/img/202005221801_gwda_ext_opencv.gif)
+
+
+### 手势密码
+首先是抠出一张手势密码中的触摸点小图，如下图被圈中的其中一个  
+![gesture-password](https://raw.githubusercontent.com/electricbubble/ImageHosting/master/img/20200525101820.png)  
+
+`GesturePassword` 函数会通过这个 触摸点小图 找到全部，并根据上图所示的进行排序。
+
+比如，这里需要一个 `M` 的手势密码，根据排序后的索引值，我们只需要传入 `[]int{6, 3, 0, 4, 2, 5, 8}`
+可参考 [gesture_test.go](./gesture_test.go)
+> 这里就不放预览图了，觉得有兴趣的可以自己尝试下，这里也只是一个简单的应用方向。 
