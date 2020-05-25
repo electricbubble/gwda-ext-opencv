@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestSessionExt_TapWithNumber(t *testing.T) {
+func TestSessionExt_Swipe(t *testing.T) {
 	client, err := gwda.NewClient("http://localhost:8100")
 	checkErr(t, err)
 	session, err := client.NewSession()
@@ -18,9 +18,17 @@ func TestSessionExt_TapWithNumber(t *testing.T) {
 
 	// gwda.WDADebug = true
 
-	err = sessionExt.TapWithNumber(pathSearch, 3)
-	checkErr(t, err)
+	// err = sessionExt.Swipe(pathSearch, 300, 500)
+	// checkErr(t, err)
+	//
+	// err = sessionExt.SwipeFloat(pathSearch, 300.9, 500)
+	// checkErr(t, err)
 
-	err = sessionExt.TapWithNumberOffset(pathSearch, 3, 0.5, 0.75)
+	// err = sessionExt.SwipeOffset(pathSearch, 300, 500, 0.2, 0.5)
+	// checkErr(t, err)
+
+	// sessionExt.Debug(DmNotMatch)
+
+	err = sessionExt.OnlyOnceThreshold(0.92).SwipeOffsetFloat(pathSearch, 300.9, 499.1, 0.2, 0.5)
 	checkErr(t, err)
 }

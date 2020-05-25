@@ -9,7 +9,7 @@ func (sExt *SessionExt) ForceTouchOffset(pathname string, pressure, xOffset, yOf
 		duration = []float64{1.0}
 	}
 	var x, y, width, height float64
-	if x, y, width, height, err = sExt.FindImgRectInUIKit(pathname); err != nil {
+	if x, y, width, height, err = sExt.FindImageRectInUIKit(pathname); err != nil {
 		return err
 	}
 
@@ -25,7 +25,7 @@ func (sExt *SessionExt) TouchAndHoldOffset(pathname string, xOffset, yOffset flo
 		duration = []float64{1.0}
 	}
 	var x, y, width, height float64
-	if x, y, width, height, err = sExt.FindImgRectInUIKit(pathname); err != nil {
+	if x, y, width, height, err = sExt.FindImageRectInUIKit(pathname); err != nil {
 		return err
 	}
 

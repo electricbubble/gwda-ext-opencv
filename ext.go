@@ -79,6 +79,16 @@ func (sExt *SessionExt) OnlyOnceThreshold(threshold float64) (newExt *SessionExt
 	return
 }
 
+func (sExt *SessionExt) OnlyOnceMatchMode(matchMode TemplateMatchMode) (newExt *SessionExt) {
+	newExt = new(SessionExt)
+	newExt.s = sExt.s
+	newExt.pathname = sExt.pathname
+	newExt.scale = sExt.scale
+	newExt.MatchMode = matchMode
+	newExt.Threshold = sExt.Threshold
+	return
+}
+
 func (sExt *SessionExt) Debug(dm DebugMode) {
 	cvHelper.Debug(cvHelper.DebugMode(dm))
 }
@@ -95,7 +105,19 @@ func (sExt *SessionExt) Debug(dm DebugMode) {
 // 	return
 // }
 
-func (sExt *SessionExt) FindImgRectInUIKit(search string) (x, y, width, height float64, err error) {
+func (sExt *SessionExt) FindAllImageRect(search string) (rects []image.Rectangle, err error) {
+	pathSource := filepath.Join(sExt.pathname, cvHelper.GenFilename())
+	if err = sExt.s.ScreenshotToDisk(pathSource); err != nil {
+		return nil, err
+	}
+
+	if rects, err = cvHelper.FindAllImageRectsFromDisk(pathSource, search, float32(sExt.Threshold), cvHelper.TemplateMatchMode(sExt.MatchMode)); err != nil {
+		return nil, err
+	}
+	return
+}
+
+func (sExt *SessionExt) FindImageRectInUIKit(search string) (x, y, width, height float64, err error) {
 	pathSource := filepath.Join(sExt.pathname, cvHelper.GenFilename())
 	if err = sExt.s.ScreenshotToDisk(pathSource); err != nil {
 		return 0, 0, 0, 0, err
@@ -109,11 +131,11 @@ func (sExt *SessionExt) FindImgRectInUIKit(search string) (x, y, width, height f
 	// if rect, err = sExt.findImgRect(search); err != nil {
 	// 	return 0, 0, 0, 0, err
 	// }
-	x, y, width, height = sExt.mappingToRectInUIKit(rect)
+	x, y, width, height = sExt.MappingToRectInUIKit(rect)
 	return
 }
 
-func (sExt *SessionExt) mappingToRectInUIKit(rect image.Rectangle) (x, y, width, height float64) {
+func (sExt *SessionExt) MappingToRectInUIKit(rect image.Rectangle) (x, y, width, height float64) {
 	x, y = float64(rect.Min.X)/sExt.scale, float64(rect.Min.Y)/sExt.scale
 	width, height = float64(rect.Dx())/sExt.scale, float64(rect.Dy())/sExt.scale
 	return

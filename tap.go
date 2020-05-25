@@ -10,7 +10,7 @@ func (sExt *SessionExt) Tap(pathname string) error {
 
 func (sExt *SessionExt) TapOffset(pathname string, xOffset, yOffset float64) (err error) {
 	var x, y, width, height float64
-	if x, y, width, height, err = sExt.FindImgRectInUIKit(pathname); err != nil {
+	if x, y, width, height, err = sExt.FindImageRectInUIKit(pathname); err != nil {
 		return err
 	}
 
@@ -23,7 +23,7 @@ func (sExt *SessionExt) DoubleTap(pathname string) (err error) {
 
 func (sExt *SessionExt) DoubleTapOffset(pathname string, xOffset, yOffset float64) (err error) {
 	var x, y, width, height float64
-	if x, y, width, height, err = sExt.FindImgRectInUIKit(pathname); err != nil {
+	if x, y, width, height, err = sExt.FindImageRectInUIKit(pathname); err != nil {
 		return err
 	}
 
@@ -40,7 +40,7 @@ func (sExt *SessionExt) TapWithNumberOffset(pathname string, numberOfTaps int, x
 		numberOfTaps = 1
 	}
 	var x, y, width, height float64
-	if x, y, width, height, err = sExt.FindImgRectInUIKit(pathname); err != nil {
+	if x, y, width, height, err = sExt.FindImageRectInUIKit(pathname); err != nil {
 		return err
 	}
 
@@ -50,7 +50,3 @@ func (sExt *SessionExt) TapWithNumberOffset(pathname string, numberOfTaps int, x
 	touchActions := gwda.NewWDATouchActions().Tap(gwda.NewWDATouchActionOptionTap().SetXYFloat(x, y).SetCount(numberOfTaps))
 	return sExt.PerformTouchActions(touchActions)
 }
-
-// TODO Drag
-// TODO Pinch
-// TODO TwoFingerTap

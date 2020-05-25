@@ -12,7 +12,7 @@ func TestSessionExt_ForceTouch(t *testing.T) {
 	checkErr(t, err)
 
 	sessionExt, err := Extend(session, 0.95, "/Users/hero/Documents/temp/2020-05")
-	checkErr(t, err, "扩展 session ，并指定截图保存路径")
+	checkErr(t, err)
 
 	pathSearch := "/Users/hero/Documents/temp/2020-05/opencv/IMG_ft.png"
 
@@ -33,7 +33,7 @@ func TestSessionExt_TouchAndHold(t *testing.T) {
 	checkErr(t, err)
 
 	sessionExt, err := Extend(session, 0.95, "/Users/hero/Documents/temp/2020-05")
-	checkErr(t, err, "扩展 session ，并指定截图保存路径")
+	checkErr(t, err)
 
 	pathSearch := "/Users/hero/Documents/temp/2020-05/opencv/IMG_ft.png"
 
