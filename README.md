@@ -123,7 +123,7 @@ func checkErr(err error, msg ...string) {
 
 ### 手势密码
 首先是抠出一张手势密码中的触摸点小图，如下图被圈中的其中一个  
-![gesture-password](https://raw.githubusercontent.com/electricbubble/ImageHosting/master/img/20200525101820.png)  
+<img src="https://raw.githubusercontent.com/electricbubble/ImageHosting/master/img/20200525101820.png" alt="gesture-password" style="zoom:25%;" />  
 
 `GesturePassword` 函数会通过这个 触摸点小图 找到全部，并根据上图所示的进行排序。
 
