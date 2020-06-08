@@ -1,10 +1,12 @@
 package gwda_ext_opencv
 
 import (
+	"bytes"
 	"github.com/electricbubble/gwda"
 	cvHelper "github.com/electricbubble/opencv-helper"
 	"image"
-	"path/filepath"
+	"io/ioutil"
+	"os"
 )
 
 // TemplateMatchMode is the type of the template matching operation.
@@ -38,23 +40,18 @@ const (
 
 type SessionExt struct {
 	s         *gwda.Session
-	pathname  string
 	scale     float64
 	MatchMode TemplateMatchMode
 	Threshold float64
 }
 
 // Extend 获得扩展后的 Session，
-// 并指定匹配阀值、以及截图保存的路径，
+// 并指定匹配阀值，
 // 获取当前设备的 Scale，
 // 默认匹配模式为 TmCcoeffNormed，
 // 默认关闭 OpenCV 匹配值计算后的输出
-func Extend(session *gwda.Session, threshold float64, pathname string, matchMode ...TemplateMatchMode) (sExt *SessionExt, err error) {
+func Extend(session *gwda.Session, threshold float64, matchMode ...TemplateMatchMode) (sExt *SessionExt, err error) {
 	sExt = &SessionExt{s: session}
-	if err = cvHelper.StoreDirectory(pathname); err != nil {
-		return nil, err
-	}
-	sExt.pathname = pathname
 
 	if sExt.scale, err = sExt.s.Scale(); err != nil {
 		return &SessionExt{}, err
@@ -72,7 +69,6 @@ func Extend(session *gwda.Session, threshold float64, pathname string, matchMode
 func (sExt *SessionExt) OnlyOnceThreshold(threshold float64) (newExt *SessionExt) {
 	newExt = new(SessionExt)
 	newExt.s = sExt.s
-	newExt.pathname = sExt.pathname
 	newExt.scale = sExt.scale
 	newExt.MatchMode = sExt.MatchMode
 	newExt.Threshold = threshold
@@ -82,7 +78,6 @@ func (sExt *SessionExt) OnlyOnceThreshold(threshold float64) (newExt *SessionExt
 func (sExt *SessionExt) OnlyOnceMatchMode(matchMode TemplateMatchMode) (newExt *SessionExt) {
 	newExt = new(SessionExt)
 	newExt.s = sExt.s
-	newExt.pathname = sExt.pathname
 	newExt.scale = sExt.scale
 	newExt.MatchMode = matchMode
 	newExt.Threshold = sExt.Threshold
@@ -106,25 +101,44 @@ func (sExt *SessionExt) Debug(dm DebugMode) {
 // }
 
 func (sExt *SessionExt) FindAllImageRect(search string) (rects []image.Rectangle, err error) {
-	pathSource := filepath.Join(sExt.pathname, cvHelper.GenFilename())
-	if err = sExt.s.ScreenshotToDisk(pathSource); err != nil {
+	var bufSource, bufSearch *bytes.Buffer
+	if bufSearch, err = getBufFromDisk(search); err != nil {
+		return nil, err
+	}
+	if bufSource, err = sExt.s.Screenshot(); err != nil {
 		return nil, err
 	}
 
-	if rects, err = cvHelper.FindAllImageRectsFromDisk(pathSource, search, float32(sExt.Threshold), cvHelper.TemplateMatchMode(sExt.MatchMode)); err != nil {
+	if rects, err = cvHelper.FindAllImageRectsFromRaw(bufSource, bufSearch, float32(sExt.Threshold), cvHelper.TemplateMatchMode(sExt.MatchMode)); err != nil {
 		return nil, err
 	}
 	return
 }
 
+func getBufFromDisk(name string) (*bytes.Buffer, error) {
+	var f *os.File
+	var err error
+	if f, err = os.Open(name); err != nil {
+		return nil, err
+	}
+	var all []byte
+	if all, err = ioutil.ReadAll(f); err != nil {
+		return nil, err
+	}
+	return bytes.NewBuffer(all), nil
+}
+
 func (sExt *SessionExt) FindImageRectInUIKit(search string) (x, y, width, height float64, err error) {
-	pathSource := filepath.Join(sExt.pathname, cvHelper.GenFilename())
-	if err = sExt.s.ScreenshotToDisk(pathSource); err != nil {
+	var bufSource, bufSearch *bytes.Buffer
+	if bufSearch, err = getBufFromDisk(search); err != nil {
+		return 0, 0, 0, 0, err
+	}
+	if bufSource, err = sExt.s.Screenshot(); err != nil {
 		return 0, 0, 0, 0, err
 	}
 
 	var rect image.Rectangle
-	if rect, err = cvHelper.FindImageRectFromDisk(pathSource, search, float32(sExt.Threshold), cvHelper.TemplateMatchMode(sExt.MatchMode)); err != nil {
+	if rect, err = cvHelper.FindImageRectFromRaw(bufSource, bufSearch, float32(sExt.Threshold), cvHelper.TemplateMatchMode(sExt.MatchMode)); err != nil {
 		return 0, 0, 0, 0, err
 	}
 

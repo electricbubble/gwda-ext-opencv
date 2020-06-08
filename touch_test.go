@@ -6,12 +6,12 @@ import (
 )
 
 func TestSessionExt_ForceTouch(t *testing.T) {
-	client, err := gwda.NewClient("http://localhost:8100")
+	client, err := gwda.NewUSBClient()
 	checkErr(t, err)
 	session, err := client.NewSession()
 	checkErr(t, err)
 
-	sessionExt, err := Extend(session, 0.95, "/Users/hero/Documents/temp/2020-05")
+	sessionExt, err := Extend(session, 0.95)
 	checkErr(t, err)
 
 	pathSearch := "/Users/hero/Documents/temp/2020-05/opencv/IMG_ft.png"
@@ -27,12 +27,12 @@ func TestSessionExt_ForceTouch(t *testing.T) {
 }
 
 func TestSessionExt_TouchAndHold(t *testing.T) {
-	client, err := gwda.NewClient("http://localhost:8100")
+	client, err := gwda.NewUSBClient()
 	checkErr(t, err)
 	session, err := client.NewSession()
 	checkErr(t, err)
 
-	sessionExt, err := Extend(session, 0.95, "/Users/hero/Documents/temp/2020-05")
+	sessionExt, err := Extend(session, 0.95)
 	checkErr(t, err)
 
 	pathSearch := "/Users/hero/Documents/temp/2020-05/opencv/IMG_ft.png"

@@ -24,13 +24,13 @@ import (
 )
 
 func main() {
-	client, err := NewClient("http://localhost:8100")
+	client, err := NewUSBClient()
 	checkErr(err)
 	session, err := client.NewSession()
 	checkErr(err)
 
-	sessionExt, err := extOpenCV.Extend(session, 0.95, "/Users/hero/Documents/temp/2020-05")
-	checkErr(err, "扩展 session ，指定匹配阀值为 95%（在不修改或者使用 `OnlyOnceThreshold` 的情况下），以及截图保存的路径")
+	sessionExt, err := extOpenCV.Extend(session, 0.95)
+	checkErr(err, "扩展 session ，指定匹配阀值为 95%（在不修改或者使用 `OnlyOnceThreshold` 的情况下）")
 
 	pathZero := "/Users/hero/Documents/temp/2020-05/opencv/flag0.png"
 	err = sessionExt.Tap(pathZero)
