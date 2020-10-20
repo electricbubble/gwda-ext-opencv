@@ -2,11 +2,16 @@ package gwda_ext_opencv
 
 import (
 	"bytes"
+	"errors"
 	"github.com/electricbubble/gwda"
 	cvHelper "github.com/electricbubble/opencv-helper"
 	"image"
 	"io/ioutil"
+	"mime"
+	"mime/multipart"
+	"net/http"
 	"os"
+	"strings"
 )
 
 // TemplateMatchMode is the type of the template matching operation.
@@ -39,10 +44,12 @@ const (
 )
 
 type SessionExt struct {
-	s         *gwda.Session
-	scale     float64
-	MatchMode TemplateMatchMode
-	Threshold float64
+	s               *gwda.Session
+	scale           float64
+	MatchMode       TemplateMatchMode
+	Threshold       float64
+	frame           *bytes.Buffer
+	doneMjpegStream chan bool
 }
 
 // Extend 获得扩展后的 Session，
@@ -52,6 +59,7 @@ type SessionExt struct {
 // 默认关闭 OpenCV 匹配值计算后的输出
 func Extend(session *gwda.Session, threshold float64, matchMode ...TemplateMatchMode) (sExt *SessionExt, err error) {
 	sExt = &SessionExt{s: session}
+	sExt.doneMjpegStream = make(chan bool, 1)
 
 	if sExt.scale, err = sExt.s.Scale(); err != nil {
 		return &SessionExt{}, err
@@ -88,6 +96,75 @@ func (sExt *SessionExt) Debug(dm DebugMode) {
 	cvHelper.Debug(cvHelper.DebugMode(dm))
 }
 
+func (sExt *SessionExt) ConnectMjpegStream(httpClient *http.Client, mjpegURL string) (err error) {
+	if httpClient == nil {
+		return errors.New(`'httpClient' can't be nil`)
+	}
+	if mjpegURL == "" {
+		return errors.New(`'mjpegURL' can't be an empty string`)
+	}
+
+	var req *http.Request
+	if req, err = http.NewRequest(http.MethodGet, mjpegURL, nil); err != nil {
+		return err
+	}
+
+	var resp *http.Response
+	if resp, err = httpClient.Do(req); err != nil {
+		return err
+	}
+	// defer func() { _ = resp.Body.Close() }()
+
+	var boundary string
+	if _, param, err := mime.ParseMediaType(resp.Header.Get("Content-Type")); err != nil {
+		return err
+	} else {
+		boundary = strings.Trim(param["boundary"], "-")
+	}
+
+	mjpegReader := multipart.NewReader(resp.Body, boundary)
+
+	go func() {
+		for {
+			select {
+			case <-sExt.doneMjpegStream:
+				_ = resp.Body.Close()
+				return
+			default:
+				var part *multipart.Part
+				if part, err = mjpegReader.NextPart(); err != nil {
+					sExt.frame = nil
+					continue
+				}
+
+				raw := new(bytes.Buffer)
+				if _, err = raw.ReadFrom(part); err != nil {
+					sExt.frame = nil
+					continue
+				}
+				sExt.frame = raw
+			}
+		}
+	}()
+
+	return
+}
+
+func (sExt *SessionExt) CloseMjpegStream() {
+	sExt.doneMjpegStream <- true
+}
+
+func (sExt *SessionExt) takeScreenshot() (raw *bytes.Buffer, err error) {
+	if sExt.frame == nil {
+		if raw, err = sExt.s.Screenshot(); err != nil {
+			return nil, err
+		}
+	} else {
+		raw = sExt.frame
+	}
+	return
+}
+
 // func (sExt *SessionExt) findImgRect(search string) (rect image.Rectangle, err error) {
 // 	pathSource := filepath.Join(sExt.pathname, cvHelper.GenFilename())
 // 	if err = sExt.s.ScreenshotToDisk(pathSource); err != nil {
@@ -105,7 +182,7 @@ func (sExt *SessionExt) FindAllImageRect(search string) (rects []image.Rectangle
 	if bufSearch, err = getBufFromDisk(search); err != nil {
 		return nil, err
 	}
-	if bufSource, err = sExt.s.Screenshot(); err != nil {
+	if bufSource, err = sExt.takeScreenshot(); err != nil {
 		return nil, err
 	}
 
@@ -133,7 +210,7 @@ func (sExt *SessionExt) FindImageRectInUIKit(search string) (x, y, width, height
 	if bufSearch, err = getBufFromDisk(search); err != nil {
 		return 0, 0, 0, 0, err
 	}
-	if bufSource, err = sExt.s.Screenshot(); err != nil {
+	if bufSource, err = sExt.takeScreenshot(); err != nil {
 		return 0, 0, 0, 0, err
 	}
 

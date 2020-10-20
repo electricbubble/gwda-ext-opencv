@@ -4,6 +4,8 @@ github.com/electricbubble/go-usbmuxd-device v0.0.0-20200528133610-7df9d0be4fb9 h
 github.com/electricbubble/go-usbmuxd-device v0.0.0-20200528133610-7df9d0be4fb9/go.mod h1:t/OklyxjyGRHGWCc4wnJe5jJFNbpS+unEQ0NeQO8upI=
 github.com/electricbubble/gwda v0.0.0-20200528135910-d762ba8ec9c1 h1:KDVnFLWMOotHscOaposhTyrT7cXnGn2uYhyzX3PtDgc=
 github.com/electricbubble/gwda v0.0.0-20200528135910-d762ba8ec9c1/go.mod h1:JrcCeQN5sPxtiAhs7B+aGN1Vfj9qHk+E8IEZpSdKucg=
+github.com/electricbubble/gwda v0.0.3 h1:doVl1CSMJw9P4cqyoV1f+z4PjVarPwcVplrtHHZ0sm8=
+github.com/electricbubble/gwda v0.0.3/go.mod h1:JrcCeQN5sPxtiAhs7B+aGN1Vfj9qHk+E8IEZpSdKucg=
 github.com/electricbubble/opencv-helper v0.0.0-20200522081140-d804b4298c7b h1:X6SB591RODI0+P+8NpBCFj9+Il5eF4+Xlhz9I0GSsRs=
 github.com/electricbubble/opencv-helper v0.0.0-20200522081140-d804b4298c7b/go.mod h1:4cig7lXb2RXRR3WeQzeoAmPSWBvUicQ1SEf2HwNlHco=
 github.com/electricbubble/opencv-helper v0.0.0-20200608033916-2a992b17f938 h1:Kk/7mh6bQ0/MfsJ4lhkGiKMLw4HPpyKGUIftHHB41cM=
