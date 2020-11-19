@@ -96,16 +96,13 @@ func (sExt *SessionExt) Debug(dm DebugMode) {
 	cvHelper.Debug(cvHelper.DebugMode(dm))
 }
 
-func (sExt *SessionExt) ConnectMjpegStream(httpClient *http.Client, mjpegURL string) (err error) {
+func (sExt *SessionExt) ConnectMjpegStream(httpClient *http.Client) (err error) {
 	if httpClient == nil {
 		return errors.New(`'httpClient' can't be nil`)
 	}
-	if mjpegURL == "" {
-		return errors.New(`'mjpegURL' can't be an empty string`)
-	}
 
 	var req *http.Request
-	if req, err = http.NewRequest(http.MethodGet, mjpegURL, nil); err != nil {
+	if req, err = http.NewRequest(http.MethodGet, "http://*", nil); err != nil {
 		return err
 	}
 
@@ -155,12 +152,11 @@ func (sExt *SessionExt) CloseMjpegStream() {
 }
 
 func (sExt *SessionExt) takeScreenshot() (raw *bytes.Buffer, err error) {
-	if sExt.frame == nil {
-		if raw, err = sExt.s.Screenshot(); err != nil {
-			return nil, err
-		}
-	} else {
-		raw = sExt.frame
+	if sExt.frame != nil {
+		return sExt.frame, nil
+	}
+	if raw, err = sExt.s.Screenshot(); err != nil {
+		return nil, err
 	}
 	return
 }
