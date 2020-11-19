@@ -5,30 +5,28 @@ import (
 	"testing"
 )
 
-func TestSessionExt_Swipe(t *testing.T) {
-	client, err := gwda.NewUSBClient()
-	checkErr(t, err)
-	session, err := client.NewSession()
+func TestDriverExt_Swipe(t *testing.T) {
+	driver, err := gwda.NewUSBDriver(nil)
 	checkErr(t, err)
 
-	sessionExt, err := Extend(session, 0.95)
+	driverExt, err := Extend(driver, 0.95)
 	checkErr(t, err)
 
 	pathSearch := "/Users/hero/Documents/temp/2020-05/opencv/flag7.png"
 
-	// gwda.WDADebug = true
+	// gwda.SetDebug(true)
 
-	// err = sessionExt.Swipe(pathSearch, 300, 500)
-	// checkErr(t, err)
-	//
-	// err = sessionExt.SwipeFloat(pathSearch, 300.9, 500)
-	// checkErr(t, err)
+	err = driverExt.Swipe(pathSearch, 300, 500)
+	checkErr(t, err)
 
-	// err = sessionExt.SwipeOffset(pathSearch, 300, 500, 0.2, 0.5)
-	// checkErr(t, err)
+	err = driverExt.SwipeFloat(pathSearch, 300.9, 500)
+	checkErr(t, err)
 
-	// sessionExt.Debug(DmNotMatch)
+	err = driverExt.SwipeOffset(pathSearch, 300, 500, 0.2, 0.5)
+	checkErr(t, err)
 
-	err = sessionExt.OnlyOnceThreshold(0.92).SwipeOffsetFloat(pathSearch, 300.9, 499.1, 0.2, 0.5)
+	driverExt.Debug(DmNotMatch)
+
+	err = driverExt.OnlyOnceThreshold(0.92).SwipeOffsetFloat(pathSearch, 300.9, 499.1, 0.2, 0.5)
 	checkErr(t, err)
 }

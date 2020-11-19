@@ -5,45 +5,41 @@ import (
 	"testing"
 )
 
-func TestSessionExt_ForceTouch(t *testing.T) {
-	client, err := gwda.NewUSBClient()
-	checkErr(t, err)
-	session, err := client.NewSession()
+func TestDriverExt_ForceTouch(t *testing.T) {
+	driver, err := gwda.NewUSBDriver(nil)
 	checkErr(t, err)
 
-	sessionExt, err := Extend(session, 0.95)
+	driverExt, err := Extend(driver, 0.95)
 	checkErr(t, err)
 
 	pathSearch := "/Users/hero/Documents/temp/2020-05/opencv/IMG_ft.png"
 
-	err = sessionExt.ForceTouch(pathSearch, 0.5, 3)
+	err = driverExt.ForceTouch(pathSearch, 0.5, 3)
 	checkErr(t, err)
 
-	// err = sessionExt.ForceTouchOffset(pathSearch, 0.5, 0.1, 0.9)
+	// err = driverExt.ForceTouchOffset(pathSearch, 0.5, 0.1, 0.9)
 	// checkErr(t, err)
 
-	// err = sessionExt.ForceTouchOffset(pathSearch, 0.2, 1.1, -1)
+	// err = driverExt.ForceTouchOffset(pathSearch, 0.2, 1.1, -1)
 	// checkErr(t, err)
 }
 
-func TestSessionExt_TouchAndHold(t *testing.T) {
-	client, err := gwda.NewUSBClient()
-	checkErr(t, err)
-	session, err := client.NewSession()
+func TestDriverExt_TouchAndHold(t *testing.T) {
+	driver, err := gwda.NewUSBDriver(nil)
 	checkErr(t, err)
 
-	sessionExt, err := Extend(session, 0.95)
+	driverExt, err := Extend(driver, 0.95)
 	checkErr(t, err)
 
 	pathSearch := "/Users/hero/Documents/temp/2020-05/opencv/IMG_ft.png"
 
-	// err = sessionExt.TouchAndHold(pathSearch)
+	// err = driverExt.TouchAndHold(pathSearch)
 	// checkErr(t, err)
 
-	// err = sessionExt.TouchAndHold(pathSearch, 3)
+	// err = driverExt.TouchAndHold(pathSearch, 3)
 	// checkErr(t, err)
 
-	err = sessionExt.TouchAndHoldOffset(pathSearch, 0.8, 0.1)
+	err = driverExt.TouchAndHoldOffset(pathSearch, 0.8, 0.1)
 	checkErr(t, err)
 }
 

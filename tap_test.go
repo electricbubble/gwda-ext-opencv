@@ -5,22 +5,20 @@ import (
 	"testing"
 )
 
-func TestSessionExt_TapWithNumber(t *testing.T) {
-	client, err := gwda.NewUSBClient()
-	checkErr(t, err)
-	session, err := client.NewSession()
+func TestDriverExt_TapWithNumber(t *testing.T) {
+	driver, err := gwda.NewUSBDriver(nil)
 	checkErr(t, err)
 
-	sessionExt, err := Extend(session, 0.95)
+	driverExt, err := Extend(driver, 0.95)
 	checkErr(t, err)
 
 	pathSearch := "/Users/hero/Documents/temp/2020-05/opencv/flag7.png"
 
-	// gwda.WDADebug = true
+	// gwda.SetDebug(true)
 
-	err = sessionExt.TapWithNumber(pathSearch, 3)
+	err = driverExt.TapWithNumber(pathSearch, 3)
 	checkErr(t, err)
 
-	err = sessionExt.TapWithNumberOffset(pathSearch, 3, 0.5, 0.75)
+	err = driverExt.TapWithNumberOffset(pathSearch, 3, 0.5, 0.75)
 	checkErr(t, err)
 }

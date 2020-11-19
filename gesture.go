@@ -6,9 +6,9 @@ import (
 	"sort"
 )
 
-func (sExt *SessionExt) GesturePassword(pathname string, password ...int) (err error) {
+func (dExt *DriverExt) GesturePassword(pathname string, password ...int) (err error) {
 	var rects []image.Rectangle
-	if rects, err = sExt.FindAllImageRect(pathname); err != nil {
+	if rects, err = dExt.FindAllImageRect(pathname); err != nil {
 		return err
 	}
 
@@ -23,21 +23,21 @@ func (sExt *SessionExt) GesturePassword(pathname string, password ...int) (err e
 		return false
 	})
 
-	touchActions := gwda.NewWDATouchActions(len(password)*2 + 1)
+	touchActions := gwda.NewTouchActions(len(password)*2 + 1)
 	for i := range password {
-		x, y, width, height := sExt.MappingToRectInUIKit(rects[password[i]])
+		x, y, width, height := dExt.MappingToRectInUIKit(rects[password[i]])
 		x = x + width*0.5
 		y = y + height*0.5
 
 		if i == 0 {
-			touchActions.Press(gwda.NewWDATouchActionOptionPress().SetXYFloat(x, y)).
+			touchActions.Press(gwda.NewTouchActionPress().WithXYFloat(x, y)).
 				Wait(0.2)
 		} else {
-			touchActions.MoveTo(gwda.NewWDATouchActionOptionMoveTo().SetXYFloat(x, y)).
+			touchActions.MoveTo(gwda.NewTouchActionMoveTo().WithXYFloat(x, y)).
 				Wait(0.2)
 		}
 	}
 	touchActions.Release()
 
-	return sExt.PerformTouchActions(touchActions)
+	return dExt.PerformTouchActions(touchActions)
 }

@@ -43,8 +43,8 @@ const (
 	DmNotMatch
 )
 
-type SessionExt struct {
-	s               *gwda.Session
+type DriverExt struct {
+	driver          gwda.WebDriver
 	scale           float64
 	MatchMode       TemplateMatchMode
 	Threshold       float64
@@ -52,51 +52,51 @@ type SessionExt struct {
 	doneMjpegStream chan bool
 }
 
-// Extend 获得扩展后的 Session，
+// Extend 获得扩展后的 Driver，
 // 并指定匹配阀值，
 // 获取当前设备的 Scale，
 // 默认匹配模式为 TmCcoeffNormed，
 // 默认关闭 OpenCV 匹配值计算后的输出
-func Extend(session *gwda.Session, threshold float64, matchMode ...TemplateMatchMode) (sExt *SessionExt, err error) {
-	sExt = &SessionExt{s: session}
-	sExt.doneMjpegStream = make(chan bool, 1)
+func Extend(driver gwda.WebDriver, threshold float64, matchMode ...TemplateMatchMode) (dExt *DriverExt, err error) {
+	dExt = &DriverExt{driver: driver}
+	dExt.doneMjpegStream = make(chan bool, 1)
 
-	if sExt.scale, err = sExt.s.Scale(); err != nil {
-		return &SessionExt{}, err
+	if dExt.scale, err = dExt.driver.Scale(); err != nil {
+		return &DriverExt{}, err
 	}
 
 	if len(matchMode) == 0 {
 		matchMode = []TemplateMatchMode{TmCcoeffNormed}
 	}
-	sExt.MatchMode = matchMode[0]
+	dExt.MatchMode = matchMode[0]
 	cvHelper.Debug(cvHelper.DebugMode(DmOff))
-	sExt.Threshold = threshold
-	return sExt, nil
+	dExt.Threshold = threshold
+	return dExt, nil
 }
 
-func (sExt *SessionExt) OnlyOnceThreshold(threshold float64) (newExt *SessionExt) {
-	newExt = new(SessionExt)
-	newExt.s = sExt.s
-	newExt.scale = sExt.scale
-	newExt.MatchMode = sExt.MatchMode
+func (dExt *DriverExt) OnlyOnceThreshold(threshold float64) (newExt *DriverExt) {
+	newExt = new(DriverExt)
+	newExt.driver = dExt.driver
+	newExt.scale = dExt.scale
+	newExt.MatchMode = dExt.MatchMode
 	newExt.Threshold = threshold
 	return
 }
 
-func (sExt *SessionExt) OnlyOnceMatchMode(matchMode TemplateMatchMode) (newExt *SessionExt) {
-	newExt = new(SessionExt)
-	newExt.s = sExt.s
-	newExt.scale = sExt.scale
+func (dExt *DriverExt) OnlyOnceMatchMode(matchMode TemplateMatchMode) (newExt *DriverExt) {
+	newExt = new(DriverExt)
+	newExt.driver = dExt.driver
+	newExt.scale = dExt.scale
 	newExt.MatchMode = matchMode
-	newExt.Threshold = sExt.Threshold
+	newExt.Threshold = dExt.Threshold
 	return
 }
 
-func (sExt *SessionExt) Debug(dm DebugMode) {
+func (dExt *DriverExt) Debug(dm DebugMode) {
 	cvHelper.Debug(cvHelper.DebugMode(dm))
 }
 
-func (sExt *SessionExt) ConnectMjpegStream(httpClient *http.Client) (err error) {
+func (dExt *DriverExt) ConnectMjpegStream(httpClient *http.Client) (err error) {
 	if httpClient == nil {
 		return errors.New(`'httpClient' can't be nil`)
 	}
@@ -124,22 +124,22 @@ func (sExt *SessionExt) ConnectMjpegStream(httpClient *http.Client) (err error) 
 	go func() {
 		for {
 			select {
-			case <-sExt.doneMjpegStream:
+			case <-dExt.doneMjpegStream:
 				_ = resp.Body.Close()
 				return
 			default:
 				var part *multipart.Part
 				if part, err = mjpegReader.NextPart(); err != nil {
-					sExt.frame = nil
+					dExt.frame = nil
 					continue
 				}
 
 				raw := new(bytes.Buffer)
 				if _, err = raw.ReadFrom(part); err != nil {
-					sExt.frame = nil
+					dExt.frame = nil
 					continue
 				}
-				sExt.frame = raw
+				dExt.frame = raw
 			}
 		}
 	}()
@@ -147,23 +147,23 @@ func (sExt *SessionExt) ConnectMjpegStream(httpClient *http.Client) (err error) 
 	return
 }
 
-func (sExt *SessionExt) CloseMjpegStream() {
-	sExt.doneMjpegStream <- true
+func (dExt *DriverExt) CloseMjpegStream() {
+	dExt.doneMjpegStream <- true
 }
 
-func (sExt *SessionExt) takeScreenshot() (raw *bytes.Buffer, err error) {
-	if sExt.frame != nil {
-		return sExt.frame, nil
+func (dExt *DriverExt) takeScreenshot() (raw *bytes.Buffer, err error) {
+	if dExt.frame != nil {
+		return dExt.frame, nil
 	}
-	if raw, err = sExt.s.Screenshot(); err != nil {
+	if raw, err = dExt.driver.Screenshot(); err != nil {
 		return nil, err
 	}
 	return
 }
 
-// func (sExt *SessionExt) findImgRect(search string) (rect image.Rectangle, err error) {
+// func (sExt *DriverExt) findImgRect(search string) (rect image.Rectangle, err error) {
 // 	pathSource := filepath.Join(sExt.pathname, cvHelper.GenFilename())
-// 	if err = sExt.s.ScreenshotToDisk(pathSource); err != nil {
+// 	if err = sExt.driver.ScreenshotToDisk(pathSource); err != nil {
 // 		return image.Rectangle{}, err
 // 	}
 //
@@ -173,16 +173,16 @@ func (sExt *SessionExt) takeScreenshot() (raw *bytes.Buffer, err error) {
 // 	return
 // }
 
-func (sExt *SessionExt) FindAllImageRect(search string) (rects []image.Rectangle, err error) {
+func (dExt *DriverExt) FindAllImageRect(search string) (rects []image.Rectangle, err error) {
 	var bufSource, bufSearch *bytes.Buffer
 	if bufSearch, err = getBufFromDisk(search); err != nil {
 		return nil, err
 	}
-	if bufSource, err = sExt.takeScreenshot(); err != nil {
+	if bufSource, err = dExt.takeScreenshot(); err != nil {
 		return nil, err
 	}
 
-	if rects, err = cvHelper.FindAllImageRectsFromRaw(bufSource, bufSearch, float32(sExt.Threshold), cvHelper.TemplateMatchMode(sExt.MatchMode)); err != nil {
+	if rects, err = cvHelper.FindAllImageRectsFromRaw(bufSource, bufSearch, float32(dExt.Threshold), cvHelper.TemplateMatchMode(dExt.MatchMode)); err != nil {
 		return nil, err
 	}
 	return
@@ -201,39 +201,39 @@ func getBufFromDisk(name string) (*bytes.Buffer, error) {
 	return bytes.NewBuffer(all), nil
 }
 
-func (sExt *SessionExt) FindImageRectInUIKit(search string) (x, y, width, height float64, err error) {
+func (dExt *DriverExt) FindImageRectInUIKit(search string) (x, y, width, height float64, err error) {
 	var bufSource, bufSearch *bytes.Buffer
 	if bufSearch, err = getBufFromDisk(search); err != nil {
 		return 0, 0, 0, 0, err
 	}
-	if bufSource, err = sExt.takeScreenshot(); err != nil {
+	if bufSource, err = dExt.takeScreenshot(); err != nil {
 		return 0, 0, 0, 0, err
 	}
 
 	var rect image.Rectangle
-	if rect, err = cvHelper.FindImageRectFromRaw(bufSource, bufSearch, float32(sExt.Threshold), cvHelper.TemplateMatchMode(sExt.MatchMode)); err != nil {
+	if rect, err = cvHelper.FindImageRectFromRaw(bufSource, bufSearch, float32(dExt.Threshold), cvHelper.TemplateMatchMode(dExt.MatchMode)); err != nil {
 		return 0, 0, 0, 0, err
 	}
 
-	// if rect, err = sExt.findImgRect(search); err != nil {
+	// if rect, err = dExt.findImgRect(search); err != nil {
 	// 	return 0, 0, 0, 0, err
 	// }
-	x, y, width, height = sExt.MappingToRectInUIKit(rect)
+	x, y, width, height = dExt.MappingToRectInUIKit(rect)
 	return
 }
 
-func (sExt *SessionExt) MappingToRectInUIKit(rect image.Rectangle) (x, y, width, height float64) {
-	x, y = float64(rect.Min.X)/sExt.scale, float64(rect.Min.Y)/sExt.scale
-	width, height = float64(rect.Dx())/sExt.scale, float64(rect.Dy())/sExt.scale
+func (dExt *DriverExt) MappingToRectInUIKit(rect image.Rectangle) (x, y, width, height float64) {
+	x, y = float64(rect.Min.X)/dExt.scale, float64(rect.Min.Y)/dExt.scale
+	width, height = float64(rect.Dx())/dExt.scale, float64(rect.Dy())/dExt.scale
 	return
 }
 
-func (sExt *SessionExt) PerformTouchActions(touchActions *gwda.WDATouchActions) error {
-	return sExt.s.PerformTouchActions(touchActions)
+func (dExt *DriverExt) PerformTouchActions(touchActions *gwda.TouchActions) error {
+	return dExt.driver.PerformAppiumTouchActions(touchActions)
 }
 
-func (sExt *SessionExt) PerformActions(actions *gwda.WDAActions) error {
-	return sExt.s.PerformActions(actions)
+func (dExt *DriverExt) PerformActions(actions *gwda.W3CActions) error {
+	return dExt.driver.PerformW3CActions(actions)
 }
 
 // IsExist
